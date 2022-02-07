@@ -1,0 +1,41 @@
+{
+    "name": "server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "dev": "nodemon dist/index.js",
+        "watch": "tsc -w",
+        "createMigration": "npx typeorm migration:generate -n migration",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "gen-env": "gen-env-types .env -o src/env.d.ts -e ."
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/connect-redis": "^0.0.18",
+        "@types/cors": "^2.8.12",
+        "@types/express": "^4.17.13",
+        "@types/node": "^17.0.15",
+        "@types/validator": "^13.7.1",
+        "nodemon": "^2.0.15",
+        "ts-node": "^10.4.0",
+        "typescript": "^4.5.5"
+    },
+    "dependencies": {
+        "apollo-server-express": "^3.6.2",
+        "argon2": "^0.28.4",
+        "class-validator": "^0.13.2",
+        "connect-redis": "^6.1.0",
+        "cors": "^2.8.5",
+        "dotenv-safe": "^8.2.0",
+        "express": "^4.17.2",
+        "express-session": "^1.17.2",
+        "graphql": "^15.8.0",
+        "ioredis": "^4.28.4",
+        "pg": "^8.7.3",
+        "type-graphql": "^1.1.1",
+        "typeorm": "^0.2.41"
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "private": true,
+    "workspaces": [
+        "web",
+        "server"
+    ],
+    "name": "FTS-test",
+    "version": "1.0.0",
+    "main": "index.js",
+    "repository": "https://github.com/Gystre/FTS-test.git",
+    "author": "Gystre <37854809+Gystre@users.noreply.github.com>",
+    "license": "MIT"
+}

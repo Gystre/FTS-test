@@ -1,0 +1,57 @@
+SERVER SERVER SERVER SERVER
+npm init -y
+
+yarn add -D @types/node typescript ts-node nodemon
+
+copy over tsconfig.json from some other project
+
+npx tsconfig.json (select node)
+
+//express to manage authentication
+yarn add express express-session
+yarn add -D @types/express
+
+//redis to store the session keys
+yarn add connect-redis ioredis
+yarn add -D @types/connect-redis
+
+//cors to prevent xss
+yarn add cors
+yarn add -D @types/cors
+
+//postgres for db
+yarn add pg
+
+//graphql to interface with db
+yarn add graphql type-graphql class-validator
+yarn add -D @types/validator
+
+//relational mapping for postgres db
+yarn add typeorm
+
+//apollo to interface with graphql
+yarn add apollo-server-express
+
+//passwords
+yarn add argon2
+
+//gen types for .env file and .env.example
+yarn add dotenv-safe
+npx gen-env-types .env -o src/env.d.ts -e .
+
+//create db
+createdb -U postgres FTS-test
+
+//change db url in .env file and ormconfig.json
+//paste over ormconfig.json
+//paste over .gitignore
+//paste in main.ts, import "dotenv-safe/config"; //takes vars in .env and makes them environment variables
+
+WEB WEB WEB WEB WEB WEB WEB WEB WEB WEB WEB 
+npx create-next-app@latest --ts web
+
+//chakra
+yarn add @chakra-ui/react @emotion/react@^11 @emotion/styled@^11 framer-motion@^5
+
+//apollo client
+yarn add @apollo/client
