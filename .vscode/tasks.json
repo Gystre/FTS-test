@@ -3,12 +3,7 @@
     "tasks": [
         {
             "label": "Start",
-            "dependsOn": [
-                "Server Start",
-                "Server Watch",
-                "Client Start",
-                "Common Start"
-            ],
+            "dependsOn": ["Server Start", "Server Watch", "Client Start"],
             "problemMatcher": []
         },
         {
@@ -29,12 +24,6 @@
             "script": "dev",
             "path": "web/",
             "problemMatcher": []
-        },
-        {
-            "label": "Common Start",
-            "type": "npm",
-            "script": "build:watch",
-            "path": "common/"
         }
     ]
 }

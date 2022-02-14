@@ -7,22 +7,27 @@ import session from "express-session";
 import Redis from "ioredis";
 import path from "path";
 import { buildSchema } from "type-graphql";
-import { createConnection } from "typeorm";
+import { createConnection, getManager } from "typeorm";
 import { COOKIE_NAME, __prod__ } from "./constants";
+import { Pokemons } from "./entities/Pokemons";
 import { HelloResolver } from "./resolvers/hello";
+import { PokemonsResolver } from "./resolvers/pokemons";
 
 const main = async () => {
     //create db connection for typeorm
-    await createConnection({
+    const connection = await createConnection({
         type: "postgres",
         url: process.env.DATABASE_URL,
         logging: true,
         // synchronize: true, //create the tables automatically without running a migration (good for development)
         migrations: [path.join(__dirname, "./migrations/*")],
-        entities: [], //MAKE SURE TO ADD ANY NEW ENTITIES HERE
+        entities: [Pokemons], //MAKE SURE TO ADD ANY NEW ENTITIES HERE
     });
 
-    //create an instance of express
+    //run the migrations inside the migrations folder
+    // await connection.runMigrations();
+
+    // create an instance of express
     const app = express();
 
     //initialize the redis session (for saving browser cookies and stuff so user can stay logged in after refreshing the page)
@@ -30,7 +35,7 @@ const main = async () => {
     const RedisStore = connectRedis(session);
     const redis = new Redis(process.env.REDIS_URL);
 
-    //tell express we have a proxy sitting in front so cookies and sessions work
+    //tell express we have 1 proxy sitting in front so cookies and sessions work
     app.set("trust proxy", 1);
 
     //apply cors middleware to all routes (pages)
@@ -69,7 +74,7 @@ const main = async () => {
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [HelloResolver],
+            resolvers: [HelloResolver, PokemonsResolver],
             validate: false,
         }),
 
@@ -89,7 +94,35 @@ const main = async () => {
     });
 
     //start the server
-    app.listen(parseInt(process.env.PORT), () => {
+    app.listen(parseInt(process.env.PORT), async () => {
+        const existingTriggers = await getManager().query(
+            "SELECT tgname AS trigger_name, tgrelid::regclass AS table_name FROM pg_trigger;"
+        );
+
+        if (existingTriggers.length == 0) {
+            // create the index column with gin indices and trigger
+            const tableName = "pokemons";
+            await getManager().query(`
+                alter table ${tableName} add column document_with_weights tsvector;
+                update ${tableName} set document_with_weights = setweight(to_tsvector(name), 'A') || setweight(to_tsvector(description), 'B') || setweight(to_tsvector(type_1), 'C') || setweight(to_tsvector(type_2), 'D');
+                CREATE INDEX document_with_weights_idx ON ${tableName} USING GIN (document_with_weights);
+
+                CREATE FUNCTION card_tsvector_trigger() RETURNS trigger AS $$
+                begin
+                    new.document_with_weights := 
+                    setweight(to_tsvector('english', coalesce(new.name, '')), 'A') ||
+                    setweight(to_tsvector('english', coalesce(new.description, '')), 'B') ||
+                    setweight(to_tsvector('english', coalesce(new.type_1, '')), 'C') ||
+                    setweight(to_tsvector('english', coalesce(new.type_2, '')), 'D');
+                    return new;
+                end
+                $$ LANGUAGE plpgsql;
+                CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE ON ${tableName} FOR EACH ROW EXECUTE PROCEDURE card_tsvector_trigger();
+            `);
+
+            console.log("created the triggers ");
+        }
+
         console.log("FTS-test server started on localhost:" + process.env.PORT);
     });
 };

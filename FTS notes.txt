@@ -1,0 +1,43 @@
+-- precreate ts_vector for each searchable column in the db
+-- alter table pokemons add column document tsvector
+-- update pokemons set document = to_tsvector(name || ' ' || description || ' ' || type_1 || ' ' || type_2)
+
+-- explain analyze select * from pokemons where document @@ to_tsquery('Normal') -- way faster!
+-- explain analyze select * from pokemons where to_tsvector(name || ' ' || description || ' ' || type_1 || ' ' || type_2) @@ to_tsquery('Normal')
+
+-- precreate gin index
+-- alter table pokemons add column document_with_idx tsvector;
+-- update pokemons set document_with_idx = to_tsvector(name || ' ' || description || ' ' || type_1 || ' ' || type_2);
+-- create index document_idx on pokemons using GIN(document_with_idx);
+
+-- explain analyze select * from pokemons where document_with_idx @@ to_tsquery('Normal') -- way faster!
+-- explain analyze select * from pokemons where document @@ to_tsquery('Normal')
+
+-- ranking the queries
+-- select * from pokemons where document_with_idx @@ to_tsquery('Normal') order by ts_rank(document_with_idx, plainto_tsquery('sharp'))
+
+-- improving the rankings
+-- alter table pokemons add column document_with_weights tsvector;
+-- update pokemons set document_with_weights = setweight(to_tsvector(name), 'A') || setweight(to_tsvector(description), 'B') || setweight(to_tsvector(type_1), 'C') || setweight(to_tsvector(type_2), 'D');
+-- create index document_with_weights_idx on pokemons using GIN(document_with_weights);
+-- select type_1, type_2, name, description, ts_rank(document_with_weights, plainto_tsquery('Flying')) from pokemons where document_with_weights @@ to_tsquery('Flying') order by ts_rank(document_with_weights, plainto_tsquery('Flying'))
+
+-- new in pg14, GENERATED COLUMNS
+-- eliminates the need for updating these things
+-- TODO: figure out how
+-- update the rankings whenever there rows are updated
+-- create function card_tsvector_trigger() returns trigger as $$
+-- begin
+-- 	-- the new row
+-- 	new.document_with_weights := 
+-- 	setweight(to_tsvector('english', coalesce(new.name, '')), 'A') ||
+-- 	setweight(to_tsvector('english', coalesce(new.description, '')), 'B') ||
+-- 	setweight(to_tsvector('english', coalesce(new.type_1, '')), 'C') ||
+-- 	setweight(to_tsvector('english', coalesce(new.type_2, '')), 'D');
+-- 	return new;
+-- end
+-- $$ language plpgsql;
+-- create trigger tsvectorupdate before insert or update on pokemons for each row execute procedure card_tsvector_trigger();
+
+-- half queries
+select * from pokemons where document_with_weights @@ to_tsquery('Bulb:*')

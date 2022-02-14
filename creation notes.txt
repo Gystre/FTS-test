@@ -53,5 +53,12 @@ npx create-next-app@latest --ts web
 //chakra
 yarn add @chakra-ui/react @emotion/react@^11 @emotion/styled@^11 framer-motion@^5
 
+//chakra
+yarn add chakra
+
+//graphql code gen
+yarn add -D @graphql-codegen/cli
+yarn graphql-codegen init
+
 //apollo client
 yarn add @apollo/client

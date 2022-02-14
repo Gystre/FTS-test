@@ -1,0 +1,9 @@
+query Search($search: String!) {
+    search(search: $search) {
+        id
+        name
+        description
+        type_1
+        type_2
+    }
+}

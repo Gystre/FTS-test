@@ -1,6 +1,10 @@
 # FTS-test
 
-use kyle-reddit stack and dummy database to demo full text search
+use kyle-reddit stack and dummy database to demo full text search. Pokedex db stolen from https://github.com/AshleyRayMaceli/pokedex/blob/master/pokedex.sql
+
+## Features
+
+-   whole word queries
 
 #### Misc
 
