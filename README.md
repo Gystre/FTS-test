@@ -6,6 +6,13 @@ use kyle-reddit stack and dummy database to demo full text search. Pokedex db st
 
 -   whole word queries
 
+## Work on
+
+-   highlighting results https://www.postgresql.org/docs/current/textsearch-controls.html#TEXTSEARCH-HEADLINE
+-   unaccent https://www.postgresql.org/docs/current/unaccent.html
+-   trigrams for fuzzy search https://www.postgresql.org/docs/current/pgtrgm.html
+-   figuring out what a dictionary does and how to use it https://www.postgresql.org/docs/current/textsearch-dictionaries.html
+
 #### Misc
 
 Dump database schema

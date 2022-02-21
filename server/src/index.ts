@@ -95,32 +95,24 @@ const main = async () => {
 
     //start the server
     app.listen(parseInt(process.env.PORT), async () => {
-        const existingTriggers = await getManager().query(
-            "SELECT tgname AS trigger_name, tgrelid::regclass AS table_name FROM pg_trigger;"
+        const tableName = "pokemons";
+        const documentExists = await getManager().query(
+            `SELECT document_with_weights FROM ${tableName} LIMIT 1`
         );
 
-        if (existingTriggers.length == 0) {
-            // create the index column with gin indices and trigger
-            const tableName = "pokemons";
+        if (documentExists.length == 0) {
+            // create the index column with gin indices
             await getManager().query(`
-                alter table ${tableName} add column document_with_weights tsvector;
-                update ${tableName} set document_with_weights = setweight(to_tsvector(name), 'A') || setweight(to_tsvector(description), 'B') || setweight(to_tsvector(type_1), 'C') || setweight(to_tsvector(type_2), 'D');
-                CREATE INDEX document_with_weights_idx ON ${tableName} USING GIN (document_with_weights);
+                ALTER TABLE ${tableName} add column document_with_weights tsvector GENERATED ALWAYS AS (
+                    setweight(to_tsvector('english', coalesce(name, '')), 'A') ||
+                    setweight(to_tsvector('english', coalesce(description, '')), 'B') ||
+                    setweight(to_tsvector('english', coalesce(type_1, '')), 'C') ||
+                    setweight(to_tsvector('english', coalesce(type_2, '')), 'D')) STORED;
 
-                CREATE FUNCTION card_tsvector_trigger() RETURNS trigger AS $$
-                begin
-                    new.document_with_weights := 
-                    setweight(to_tsvector('english', coalesce(new.name, '')), 'A') ||
-                    setweight(to_tsvector('english', coalesce(new.description, '')), 'B') ||
-                    setweight(to_tsvector('english', coalesce(new.type_1, '')), 'C') ||
-                    setweight(to_tsvector('english', coalesce(new.type_2, '')), 'D');
-                    return new;
-                end
-                $$ LANGUAGE plpgsql;
-                CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE ON ${tableName} FOR EACH ROW EXECUTE PROCEDURE card_tsvector_trigger();
+                CREATE INDEX document_with_weights_idx ON ${tableName} USING GIN (document_with_weights);            
             `);
 
-            console.log("created the triggers ");
+            console.log("created the indices");
         }
 
         console.log("FTS-test server started on localhost:" + process.env.PORT);
